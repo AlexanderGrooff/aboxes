@@ -61,20 +61,35 @@ func executeCommands(targets []string, commands []string, outputFile string) {
 
 func getConfigForHost(target string) *easyssh.MakeConfig {
 	proxy := ssh_config.Get(target, "ProxyJump")
+	user := ssh_config.Get(target, "User")
+	if user == "" {
+		user = os.Getenv("USER")
+	}
+	port := ssh_config.Get(target, "Port")
+	if port == "" {
+		port = "22"
+	}
+	hostname := fillSSHConfigHostname(target, ssh_config.Get(target, "HostName"))
+	if hostname == "" {
+		hostname = target
+	}
+
+	log.Info("Creating SSH config for target ", target, " with hostname ", hostname, " and proxy ", proxy)
+
 	if proxy != "" {
 		log.Info("Using proxy ", proxy, " for target ", target)
 		return &easyssh.MakeConfig{
-			User:   ssh_config.Get(target, "User"),
-			Server: fillSSHConfigHostname(target, ssh_config.Get(target, "HostName")),
-			Port:   ssh_config.Get(target, "Port"),
+			User:   user,
+			Server: hostname,
+			Port:   port,
 			Proxy:  *makeConfigToDefaultConfig(getConfigForHost(proxy)),
 		}
 	} else {
 		log.Info("No proxy found for target ", target)
 		return &easyssh.MakeConfig{
-			User:   ssh_config.Get(target, "User"),
-			Server: fillSSHConfigHostname(target, ssh_config.Get(target, "HostName")),
-			Port:   ssh_config.Get(target, "Port"),
+			User:   user,
+			Server: hostname,
+			Port:   port,
 		}
 	}
 }
