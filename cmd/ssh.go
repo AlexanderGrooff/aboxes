@@ -34,22 +34,22 @@ func executeCommands(targets []string, commands []string, outputFile string) {
 			for _, command := range commands {
 				stdout, stderr, _, err := ssh.Run(command)
 				if err != nil {
-					log.Printf("Error running command on %s: %s\n", target, err)
+					log.Warn("Error running command on ", target, ": ", err)
 					continue
 				}
 				// Identify host with output
-				log.Printf("%s: %s\n", target, stdout)
+				log.Info(target, ": ", stdout)
 				if stderr != "" {
-					log.Printf("%s: %s\n", target, stderr)
+					log.Info(target, ": ", stderr)
 				}
 				// Write output to file if given
 				if file != nil {
 					if _, err := file.WriteString(fmt.Sprintf("%s: %s\n%s\n", target, command, stdout)); err != nil {
-						log.Printf("Error writing to file: %s\n", err)
+						log.Warn("Error writing to file: ", err)
 					}
 					if stderr != "" {
 						if _, err := file.WriteString(fmt.Sprintf("%s: %s\n%s\n", target, command, stderr)); err != nil {
-							log.Printf("Error writing to file: %s\n", err)
+							log.Warn("Error writing to file: ", err)
 						}
 					}
 				}
@@ -74,10 +74,10 @@ func getConfigForHost(target string) *easyssh.MakeConfig {
 		hostname = target
 	}
 
-	log.Info("Creating SSH config for target ", target, " with hostname ", hostname, " and proxy ", proxy)
+	log.Debug("Creating SSH config for target ", target, " with hostname ", hostname, " and proxy ", proxy)
 
 	if proxy != "" {
-		log.Info("Using proxy ", proxy, " for target ", target)
+		log.Debug("Using proxy ", proxy, " for target ", target)
 		return &easyssh.MakeConfig{
 			User:   user,
 			Server: hostname,
@@ -85,7 +85,7 @@ func getConfigForHost(target string) *easyssh.MakeConfig {
 			Proxy:  *makeConfigToDefaultConfig(getConfigForHost(proxy)),
 		}
 	} else {
-		log.Info("No proxy found for target ", target)
+		log.Debug("No proxy found for target ", target)
 		return &easyssh.MakeConfig{
 			User:   user,
 			Server: hostname,
