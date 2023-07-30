@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/appleboy/easyssh-proxy"
@@ -77,7 +78,10 @@ func runAndParse(target string, command string, ssh *easyssh.MakeConfig) Result 
 }
 
 func runScriptOnHost(target string, script string, ssh *easyssh.MakeConfig) Result {
-	remotePath := fmt.Sprintf("/tmp/%s", script)
+	// Only keep the filename without the directory
+	basename := script[strings.LastIndex(script, "/")+1:]
+
+	remotePath := fmt.Sprintf("/tmp/%s", basename)
 	if err := ssh.Scp(script, remotePath); err != nil {
 		log.Warn("Error copying script to host: ", err)
 		return Result{
