@@ -1,4 +1,4 @@
-module github.com/AlexanderGrooff/boxes
+module github.com/AlexanderGrooff/aboxes
 
 go 1.20
 

@@ -1,4 +1,4 @@
-# Boxes
+# aboxes
 
 Run one or more commands on multiple remote hosts via SSH.
 This is most commonly used for retrieving ad-hoc information without too much fuzz.
@@ -6,12 +6,12 @@ This is most commonly used for retrieving ad-hoc information without too much fu
 ## Usage
 
 ```bash
-$ boxes run -t theta,testalex.h -c hostname
+$ aboxes run -t theta,testalex.h -c hostname
 INFO[0000] theta: theta
 INFO[0000] testalex.h: j6yt29-testalex-magweb-do.nodes.hypernode.io
 
 # Format output with Go template syntax
-$ boxes run -t theta,testalex.h -c hostname --format "{{.Target}} -> {{.Stdout}}"
+$ aboxes run -t theta,testalex.h -c hostname --format "{{.Target}} -> {{.Stdout}}"
 INFO[0000] theta -> theta
 INFO[0000] testalex.h -> j6yt29-testalex-magweb-do.nodes.hypernode.io
 ```

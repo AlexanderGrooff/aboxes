@@ -20,7 +20,7 @@ var rootCmd = &cobra.Command{
 			log.SetLevel(log.InfoLevel)
 		}
 	},
-	Use:   "boxes",
+	Use:   "aboxes",
 	Short: "Manage multiple machines",
 	Long: `Run commands in a parallel manner on multiple machines.
 This is typically useful for ad-hoc commands without too much fuzz.`,
