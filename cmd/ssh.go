@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func executeCommands(targets []string, commands []string, outputFile string, format string) {
+func executeCommands(targets []string, commands []string, outputFile string, format string, files []string) {
 	// Open output file in append mode
 	var file *os.File
 	var err error
@@ -30,9 +30,25 @@ func executeCommands(targets []string, commands []string, outputFile string, for
 			ssh := getConfigForHost(target)
 			// TODO: Use same SSH connection for all commands
 			for _, command := range commands {
-				result := RunAndParse(target, command, ssh)
-				if err != nil {
+				result := runAndParse(target, command, ssh)
+				if result.Error != nil {
 					log.Warn("Error running command on ", target, ": ", err)
+					continue
+				}
+				output := result.toString(format)
+				log.Info(output)
+				// Write output to file if given
+				if file != nil {
+					if _, err := file.WriteString(fmt.Sprintf("%s\n", output)); err != nil {
+						log.Warn("Error writing to file: ", err)
+					}
+				}
+			}
+			for _, script := range files {
+				log.Debug("Running script ", script, " on ", target)
+				result := runScriptOnHost(target, script, ssh)
+				if result.Error != nil {
+					log.Warn("Error running script on ", target, ": ", err)
 					continue
 				}
 				output := result.toString(format)
@@ -49,7 +65,7 @@ func executeCommands(targets []string, commands []string, outputFile string, for
 	wg.Wait()
 }
 
-func RunAndParse(target string, command string, ssh *easyssh.MakeConfig) Result {
+func runAndParse(target string, command string, ssh *easyssh.MakeConfig) Result {
 	stdout, stderr, _, err := ssh.Run(command)
 	return Result{
 		Target:   target,
@@ -58,4 +74,26 @@ func RunAndParse(target string, command string, ssh *easyssh.MakeConfig) Result 
 		Stderr:   stderr,
 		Error:    err,
 	}
+}
+
+func runScriptOnHost(target string, script string, ssh *easyssh.MakeConfig) Result {
+	remotePath := fmt.Sprintf("/tmp/%s", script)
+	if err := ssh.Scp(script, remotePath); err != nil {
+		log.Warn("Error copying script to host: ", err)
+		return Result{
+			Target:   target,
+			Hostname: ssh.Server,
+			Error:    err,
+		}
+	}
+	cmd := fmt.Sprintf("bash -s < %s", remotePath)
+	result := runAndParse(target, cmd, ssh)
+
+	// Remove script from host in background
+	go func() {
+		if _, _, _, err := ssh.Run(fmt.Sprintf("rm %s", remotePath)); err != nil {
+			log.Warn("Error removing script from host: ", err)
+		}
+	}()
+	return result
 }

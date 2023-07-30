@@ -18,9 +18,10 @@ var runCmd = &cobra.Command{
 		commands, _ := cmd.Flags().GetStringSlice("command")
 		outputFile, _ := cmd.Flags().GetString("output")
 		format, _ := cmd.Flags().GetString("format")
+		files, _ := cmd.Flags().GetStringSlice("file")
 
 		// Execute the commands
-		executeCommands(targets, commands, outputFile, format)
+		executeCommands(targets, commands, outputFile, format, files)
 	},
 }
 
@@ -29,7 +30,8 @@ func init() {
 
 	runCmd.Flags().StringSliceP("target", "t", []string{}, "Target host")
 	runCmd.Flags().StringSliceP("command", "c", []string{}, "Command to run")
-	runCmd.Flags().StringP("format", "f", "{{.Target}}: {{.Stdout}}",
+	runCmd.Flags().StringSliceP("file", "f", []string{}, "Files to run")
+	runCmd.Flags().StringP("format", "", "{{.Target}}: {{.Stdout}}",
 		"Output format in Go template syntax. Available fields: Target, Hostname, Stdout, Stderr, Error")
 	runCmd.Flags().StringP("output", "o", "", "Output file")
 }
